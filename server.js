@@ -3,8 +3,12 @@ const cors = require('cors');
 const axios = require('axios');
 
 const app = express();
-
 app.use(cors());
+
+// 🚨 NAYA HACK: Is se 404 Error hamesha ke liye khatam ho jayega!
+app.get('/', (req, res) => {
+    res.send("🔥 CEO UMER ASIF PRIVATE API IS RUNNING PERFECTLY! 🔥");
+});
 
 app.get('/live-radar', async (req, res) => {
     const { lat, lng } = req.query;
@@ -55,5 +59,5 @@ app.get('/live-radar', async (req, res) => {
     }
 });
 
-// 🔥 THE VERCEL MAGIC LINE 🔥 (Is line ki wajah se Vercel par chalega)
+// Vercel Magic Export
 module.exports = app;
