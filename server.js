@@ -4,12 +4,9 @@ const axios = require('axios');
 
 const app = express();
 
-// CORS isliye taake teri Github wali website is API ko access kar sake
 app.use(cors());
 
-// 🚨 TERI APNI API KA ENDPOINT 🚨
 app.get('/live-radar', async (req, res) => {
-    // Frontend se Latitude aur Longitude lega
     const { lat, lng } = req.query;
     const radius = 250; 
 
@@ -17,9 +14,6 @@ app.get('/live-radar', async (req, res) => {
         return res.status(400).json({ error: "Ustad ji, Latitude aur Longitude toh bhejo!" });
     }
 
-    console.log(`[API] Umer Asif ke server par request aayi: Lat ${lat}, Lng ${lng}`);
-
-    // Dunya ke 3 baday servers
     const apiUrls = [
         `https://api.airplanes.live/v2/point/${lat}/${lng}/${radius}`,
         `https://api.adsb.fi/v2/point/${lat}/${lng}/${radius}`,
@@ -27,22 +21,16 @@ app.get('/live-radar', async (req, res) => {
     ];
 
     try {
-        // Promise.any: Jo server pehle data dega, API foran wo utha legi
         const fetchPromises = apiUrls.map(url => axios.get(url));
         const fastestResponse = await Promise.any(fetchPromises);
         
-        // Data aagaya, ab isko apni website ko bhej do
         res.json({
             success: true,
             provider: new URL(fastestResponse.config.url).hostname,
             flights: fastestResponse.data.ac || []
         });
-
     } catch (error) {
-        // Agar main servers fail ho jayein toh OpenSky ka Backup
-        console.log("[API] Main servers down. Switching to OpenSky Backup...");
         try {
-            // OpenSky ka hisaab (Approximate bounds)
             let latNum = parseFloat(lat);
             let lngNum = parseFloat(lng);
             let osUrl = `https://opensky-network.org/api/states/all?lamin=${latNum-3}&lomin=${lngNum-3}&lamax=${latNum+3}&lomax=${lngNum+3}`;
@@ -60,7 +48,6 @@ app.get('/live-radar', async (req, res) => {
                     });
                 });
             }
-            
             res.json({ success: true, provider: "opensky-network.org (Backup)", flights: flights });
         } catch (backupError) {
             res.status(500).json({ error: "Saare radars offline hain mere Tycoon!" });
@@ -68,7 +55,5 @@ app.get('/live-radar', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🔥 UMER ASIF API is running on port ${PORT}`);
-});
+// 🔥 THE VERCEL MAGIC LINE 🔥 (Is line ki wajah se Vercel par chalega)
+module.exports = app;
